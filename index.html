@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入 SheetJS 解析 Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        /* ========== 高级科技感太空主题 ========== */
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(ellipse at 30% 40%, #0a0f2a, #010314, #141b3b);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', 'Orbitron', 'Arial', sans-serif;
+            display: grid;
+            grid-template-columns: auto 3fr 1fr;
+            overflow: hidden;
+            color: #e2f2ff;
+            text-shadow: 0 0 8px #3ecfff;
+            position: relative;
+        }
+
+        /* 动态背景 (保持不变) */
+        #space-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .aurora {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0,255,200,0.1) 0%, rgba(0,100,255,0.2) 30%, rgba(200,0,255,0.1) 60%, transparent 90%);
+            filter: blur(40px);
+            animation: auroraMove 20s infinite alternate;
+            opacity: 0.8;
+        }
+        @keyframes auroraMove {
+            0% { transform: translateX(-20%) skewX(-5deg); }
+            100% { transform: translateX(20%) skewX(5deg); }
+        }
+        .star {
+            position: absolute;
+            background: #fffde7;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #9bd7ff;
+            animation: starTwinkle 3s infinite alternate;
+        }
+        @keyframes starTwinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.5); background: #fffdcc; }
+        }
+        .shooting-star {
+            position: absolute;
+            width: 180px;
+            height: 5px;
+            background: linear-gradient(to right, #b0f0ff, #5db0ff, transparent);
+            border-radius: 50%;
+            filter: blur(2px) drop-shadow(0 0 15px cyan);
+            transform: rotate(-25deg);
+            animation: shooting 7s infinite linear;
+            pointer-events: none;
+        }
+        @keyframes shooting {
+            0% { left: 110%; top: -10%; opacity: 1; }
+            80% { opacity: 0.8; }
+            100% { left: -20%; top: 110%; opacity: 0; }
+        }
+        /* 加大宇航员、火箭、UFO */
+        #space-effects .rocket {
+            font-size: 6rem !important;
+            animation: rocketFly 14s infinite linear;
+            filter: drop-shadow(0 0 30px orange);
+        }
+        #space-effects .ufo {
+            font-size: 5.5rem !important;
+            animation: ufoFloat 18s infinite alternate;
+            filter: drop-shadow(0 0 40px #6f6);
+        }
+        #space-effects .fa-user-astronaut {
+            font-size: 5rem !important;
+            filter: drop-shadow(0 0 20px cyan);
+        }
+        .rocket {
+            position: absolute;
+            color: #ffaa33;
+            z-index: 5;
+        }
+        .ufo {
+            position: absolute;
+            color: #b0f0b0;
+        }
+        @keyframes rocketFly {
+            0% { left: -10%; top: 20%; transform: rotate(30deg); }
+            50% { left: 50%; top: 10%; transform: rotate(-10deg); }
+            100% { left: 110%; top: 30%; transform: rotate(20deg); }
+        }
+        @keyframes ufoFloat {
+            0% { left: 5%; top: 70%; transform: rotate(0deg); }
+            50% { left: 40%; top: 40%; transform: rotate(10deg); }
+            100% { left: 80%; top: 60%; transform: rotate(-5deg); }
+        }
+        .earth-container {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            left: 70%;
+            top: 60%;
+            transform: translate(-50%, -50%);
+            animation: earthSpin 40s infinite linear;
+            pointer-events: none;
+            z-index: 3;
+        }
+        .earth {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, #3a9eff, #0a4b8a);
+            border-radius: 50%;
+            box-shadow: 0 0 60px #1e90ff, inset -20px -20px 30px #001f3f;
+            position: relative;
+            overflow: hidden;
+        }
+        .continent {
+            position: absolute;
+            background: #6b8e23;
+            border-radius: 60% 40% 70% 30%;
+            filter: blur(4px);
+            opacity: 0.5;
+        }
+        .continent1 { width: 60px; height: 40px; top: 30px; left: 40px; background: #2e8b57; transform: rotate(20deg); }
+        .continent2 { width: 70px; height: 50px; top: 100px; left: 100px; background: #3cb371; transform: rotate(-15deg); }
+        .continent3 { width: 50px; height: 30px; top: 140px; left: 30px; background: #32cd32; }
+        .continent4 { width: 40px; height: 40px; top: 50px; left: 140px; background: #66cdaa; }
+        .walker {
+            position: absolute;
+            font-size: 1.8rem;
+            color: white;
+            filter: drop-shadow(0 0 8px cyan);
+            animation: walkOnEarth 20s infinite linear;
+            transform-origin: center;
+        }
+        .walker1 { left: 20%; top: 30%; animation-delay: -2s; }
+        .walker2 { left: 70%; top: 60%; animation-delay: -7s; }
+        .walker3 { left: 40%; top: 80%; animation-delay: -12s; }
+        @keyframes walkOnEarth {
+            0% { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+            25% { transform: rotate(90deg) translateX(60px) rotate(-90deg); }
+            50% { transform: rotate(180deg) translateX(50px) rotate(-180deg); }
+            75% { transform: rotate(270deg) translateX(70px) rotate(-270deg); }
+            100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+        }
+
+        /* 左侧竖排工具栏 */
+        #left-toolbar {
+            background: rgba(8, 18, 33, 0.7);
+            backdrop-filter: blur(12px);
+            border-right: 3px solid #0cf;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 20;
+            box-shadow: 10px 0 40px rgba(0,255,255,0.3);
+            overflow-y: auto;
+            width: 220px;
+        }
+        #left-toolbar button, #left-toolbar select {
+            background: #102235;
+            border: 2px solid #2ee2ff;
+            color: #e7fcff;
+            padding: 12px 8px;
+            border-radius: 40px 8px 40px 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px #0cf, 0 4px 0 #005c8f;
+            text-shadow: 0 0 5px white;
+            font-family: 'Orbitron', sans-serif;
+            width: 100%;
+        }
+        #left-toolbar select {
+            background: #1a3349;
+            color: white;
+            text-align: center;
+        }
+        #left-toolbar button i { margin-right: 8px; font-size: 1.4rem; }
+        #left-toolbar button:hover {
+            background: #1e4b73;
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px #0cf, 0 6px 0 #007bb3;
+        }
+        .class-management {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+        .class-management button {
+            flex: 1;
+            padding: 8px 4px;
+            font-size: 0.9rem;
+        }
+
+        /* 主内容区域 - 可滚动 */
+        #main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 15px 20px 10px;
+            height: 100vh;
+            box-sizing: border-box;
+            z-index: 20;
+            overflow-y: auto;
+        }
+
+        /* 点名区域放大 */
+        #rollName {
+            font-size: 8vh;
+            text-align: center;
+            margin: 10px 0 15px;
+            text-shadow: 0 0 20px #0cf, 0 0 40px #09c;
+            background: rgba(0, 30, 60, 0.4);
+            border: 4px solid #3ecfff;
+            border-radius: 60px 20px 60px 20px;
+            padding: 0.2em 0.4em;
+            letter-spacing: 4px;
+            color: #f0fdff;
+            font-weight: 800;
+            backdrop-filter: blur(6px);
+            animation: namePulse 1.5s infinite alternate;
+        }
+        @keyframes namePulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px cyan; }
+            100% { transform: scale(1.05); box-shadow: 0 0 60px cyan; }
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 5px 0;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+        .control-row button {
+            background: #1e3b55;
+            border: 2px solid #2bc6ff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px 8px 30px 8px;
+            font-size: 1.2rem;
+            box-shadow: 0 0 12px cyan;
+            cursor: pointer;
+        }
+
+        /* 分组网格 */
+        .groups {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .group {
+            padding: 12px 10px;
+            border: 2px solid #2bc6ff;
+            border-radius: 25px 8px 25px 8px;
+            background: rgba(8, 22, 45, 0.8);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 20px #00b8ff, inset 0 0 15px #004b7a;
+            transition: transform 0.2s;
+            font-size: 1rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        .group:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 35px #3ee0ff;
+        }
+        .group > div:first-child {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #a8ebff;
+            text-shadow: 0 0 12px cyan;
+            border-bottom: 2px dashed #0ec;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .score {
+            font-size: 1.6rem;
+            margin: 5px 0 8px;
+            background: #03243c;
+            border-radius: 40px;
+            padding: 5px;
+            border: 2px solid #0cf;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            box-shadow: 0 0 15px cyan;
+        }
+        .score span {
+            font-size: 2rem;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+            color: #f9ffb0;
+            transition: 0.1s;
+        }
+        .score-pop {
+            animation: pop 0.2s ease-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.8); color: #ffd966; filter: drop-shadow(0 0 20px gold); }
+            100% { transform: scale(1); }
+        }
+        /* 学生名字可点击，居中显示 */
+        .group div:not(:first-child):not(.score) {
+            font-size: 1.4rem;
+            padding: 3px 8px;
+            margin: 2px 0;
+            background: rgba(0, 140, 200, 0.2);
+            border-radius: 30px 5px 30px 5px;
+            border-left: 4px solid #0cf;
+            color: #e6f7ff;
+            cursor: pointer;
+            transition: 0.1s;
+            text-align: center;
+        }
+        .group div:not(:first-child):not(.score):hover {
+            background: rgba(0, 200, 255, 0.4);
+            transform: scale(1.02);
+            box-shadow: 0 0 15px cyan;
+        }
+
+        /* 右侧排行榜 */
+        #ranking {
+            padding: 20px;
+            background: rgba(5, 20, 35, 0.9);
+            backdrop-filter: blur(8px);
+            border-left: 4px solid #0cf;
+            z-index: 20;
+            overflow-y: auto;
+            font-size: 1.4rem;
+            border-radius: 30px 0 0 30px;
+            box-shadow: inset -10px 0 30px #001a33;
+            color: #c2f0ff;
+            width: 280px;
+        }
+        .ranking-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 1.6rem; /* 调小一号 */
+            margin-bottom: 15px;
+            color: #ffff00; /* 荧光黄 */
+            font-weight: bold; /* 加粗 */
+            font-family: 'SimHei', 'Hei', 'Microsoft YaHei', '黑体', sans-serif; /* 黑体 */
+            /* 移除发光效果 */
+        }
+        .ranking-header span {
+            font-size: 1.6rem; /* 与父级一致 */
+        }
+        .rank-item {
+            font-size: 1.8rem; /* 加大两号 */
+            font-weight: bold;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: rgba(0, 60, 100, 0.5);
+            border-radius: 30px 5px 30px 5px;
+            border: 2px solid #1ecbe8;
+            white-space: nowrap; /* 强制一行 */
+            overflow: hidden;
+            text-overflow: ellipsis; /* 超长加省略号 */
+        }
+        .rank-item span:last-child {
+            color: #ffcc00; /* 金黄色 */
+            float: right;
+            font-weight: bold;
+        }
+
+        /* 罐子样式 */
+        .jar {
+            background: linear-gradient(145deg, #5f4c3b, #8b6e4b);
+            border: 4px solid #c99e6e;
+            border-radius: 30% 30% 20% 20% / 60% 60% 20% 20%;
+            padding: 10px 8px 15px;
+            box-shadow: inset 0 -8px 0 #4a3729, 0 10px 20px rgba(0,0,0,0.5);
+            position: relative;
+            min-width: 120px;
+            margin: 5px;
+            transition: none;
+        }
+        .jar::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 30%;
+            width: 40%;
+            height: 20px;
+            background: #b5875a;
+            border-radius: 50% 50% 30% 30%;
+            border: 2px solid #dbb47a;
+        }
+        .stars-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            justify-content: center;
+            min-height: 40px;
+        }
+        .star-icon {
+            font-size: 1.8rem;
+            color: #ffd966;
+            text-shadow: 0 0 10px gold;
+            line-height: 1;
+        }
+        .jar-score {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffecb3;
+            margin-top: 5px;
+            text-shadow: 0 0 10px #ffaa00;
+        }
+        .student-jar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px 10px 50px 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .student-jar-item .jar {
+            flex: 0 0 auto;
+        }
+        .student-jar-item .info {
+            flex: 1;
+            font-size: 1.8rem;
+        }
+        .student-jar-item .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .student-jar-item button {
+            background: #2e5173;
+            border: 2px solid #6cf;
+            border-radius: 30px;
+            padding: 10px 15px;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* 弹窗样式 */
+        #scoreRecordModal, #groupEditModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 20, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #scoreRecordContent, #groupEditContent {
+            background: #031726;
+            border: 4px solid #00e5ff;
+            border-radius: 60px 20px 60px 20px;
+            box-shadow: 0 0 70px cyan;
+            color: #d0f0ff;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 1000px;
+        }
+        #fileInput { display: none; }
+
+        /* 悬浮球样式 */
+        #floatingBall {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle at 30% 30%, #3ecfff, #0a4b8a);
+            border-radius: 50%;
+            box-shadow: 0 0 30px cyan, 0 10px 20px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            cursor: grab;
+            z-index: 200;
+            user-select: none;
+            transition: box-shadow 0.2s;
+            border: 3px solid #b0f0ff;
+        }
+        #floatingBall:active {
+            cursor: grabbing;
+            box-shadow: 0 0 50px white;
+        }
+        #floatingBall i {
+            filter: drop-shadow(0 0 5px gold);
+        }
+
+        /* 空分组提示 */
+        .empty-groups {
+            grid-column: 1/-1;
+            text-align: center;
+            font-size: 2rem;
+            color: #7fc9ff;
+            padding: 40px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 60px;
+        }
+
+        /* 标题居中 */
+        .modal-title {
+            text-align: center;
+            font-size: 2.8rem;
+            margin: 10px 0;
+        }
+
+        /* ========== 新增卡通关闭按钮样式 ========== */
+        .close-btn {
+            font-size: 1.8rem; /* 加大字号 */
+            padding: 15px 30px;
+            background: #ffaa00; /* 卡通黄色 */
+            border: 4px solid #fff5b0;
+            border-radius: 60px 20px 60px 20px;
+            color: #1a2a4a;
+            font-weight: bold;
+            box-shadow: 0 0 20px #ffd966, 0 8px 0 #b37400;
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px #ffdb8a, 0 10px 0 #b37400;
+        }
+        .close-btn i {
+            font-size: 2rem;
+        }
+        /* 查看个人分界面顶部条：关闭按钮和下拉同行 */
+        .personal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 5px;
+        }
+        .personal-header .close-btn {
+            margin-bottom: 0; /* 覆盖默认下边距 */
+        }
+        #personalPeriodSelect {
+            font-size: 1.8rem;
+            padding: 10px 20px;
+            background: #1e3b55;
+            color: white;
+            border: 3px solid #0cf;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+
+        /* ========== 新增卡通加减按钮样式 ========== */
+        .candy-btn {
+            font-size: 2rem;          /* 大号字体 */
+            padding: 15px 25px;
+            border-radius: 60px 20px 60px 20px;
+            border: 4px solid #fff5b0;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 20px #ffd966, 0 6px 0 #b37400;
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffaa00; /* 默认黄色 */
+        }
+        .candy-btn i {
+            font-size: 2.2rem;
+        }
+        .candy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px #ffdb8a, 0 8px 0 #b37400;
+        }
+        /* 减一颗按钮（黄色） */
+        .candy-btn.minus {
+            background: #ffaa00; /* 黄色 */
+            box-shadow: 0 0 20px #ffd966, 0 6px 0 #b37400;
+        }
+        .candy-btn.minus:hover {
+            box-shadow: 0 0 30px #ffdb8a, 0 8px 0 #b37400;
+        }
+        /* 加一颗按钮（绿色） */
+        .candy-btn.plus {
+            background: #6bcf7f;
+            box-shadow: 0 0 20px #a5e0b3, 0 6px 0 #3d8c4a;
+        }
+        .candy-btn.plus:hover {
+            box-shadow: 0 0 30px #c0f0cc, 0 8px 0 #3d8c4a;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 动态太空特效层 (不变) -->
+    <div id="space-effects">
+        <div class="aurora"></div>
+        <div class="shooting-star" style="top:15%; left:100%; animation-delay:0s;"></div>
+        <div class="shooting-star" style="top:30%; left:100%; animation-delay:2s;"></div>
+        <div class="shooting-star" style="top:55%; left:100%; animation-delay:4s;"></div>
+        <div class="shooting-star" style="top:75%; left:100%; animation-delay:6s;"></div>
+        <div class="shooting-star" style="top:20%; left:100%; animation-delay:8s;"></div>
+        <div class="shooting-star" style="top:80%; left:100%; animation-delay:10s;"></div>
+        <i class="fa fa-rocket rocket" style="left: -10%; top: 20%;"></i>
+        <i class="fa fa-space-shuttle ufo" style="left: 5%; top: 70%; transform: rotate(20deg);"></i>
+        <div class="earth-container">
+            <div class="earth">
+                <div class="continent continent1"></div>
+                <div class="continent continent2"></div>
+                <div class="continent continent3"></div>
+                <div class="continent continent4"></div>
+                <i class="fa fa-child walker walker1" style="color: #f0f0f0;"></i>
+                <i class="fa fa-child walker walker2" style="color: #f0f0f0;"></i>
+                <i class="fa fa-child walker walker3" style="color: #f0f0f0;"></i>
+            </div>
+        </div>
+        <i class="fa fa-user-astronaut" style="position:absolute; left:10%; top:10%; color:white;"></i>
+        <i class="fa fa-user-astronaut" style="position:absolute; left:85%; top:20%; color:#ffe0a0;"></i>
+        <style>
+            @keyframes floatAstro {
+                0% { transform: translateY(0) rotate(0deg); }
+                50% { transform: translateY(-30px) rotate(5deg); }
+                100% { transform: translateY(0) rotate(-5deg); }
+            }
+            #space-effects .fa-user-astronaut {
+                animation: floatAstro 16s infinite;
+            }
+            #space-effects .fa-user-astronaut:last-child {
+                animation: floatAstro 13s infinite reverse;
+            }
+        </style>
+    </div>
+
+    <!-- 左侧竖排工具栏 -->
+    <div id="left-toolbar">
+        <!-- 修改: 增加 onchange 事件实现班级切换 -->
+        <select id="classSelector" onchange="switchClass(this.value)" ondblclick="renameCurrentClass()"></select>
+        <div class="class-management">
+            <button onclick="addNewClass()"><i class="fa fa-plus"></i>添加</button>
+            <button onclick="deleteCurrentClass()"><i class="fa fa-trash"></i>删除</button>
+        </div>
+        <button onclick="saveScores()"><i class="fa fa-save"></i>保存分数</button>
+        <button onclick="restoreScores()"><i class="fa fa-undo"></i>恢复分数</button>
+        <button onclick="addScoreToAllGroups(1)"><i class="fa fa-plus-circle"></i>全体+1分</button>
+        <button onclick="clearAllScores()"><i class="fa fa-trash"></i>清空分数</button>
+        <button onclick="editPersonalScores()"><i class="fa fa-pencil-square-o"></i>记录个人分</button>
+        <button onclick="viewRankingScores()"><i class="fa fa-trophy"></i>查看个人分</button>
+        <!-- 新增导出按钮 -->
+        <button onclick="exportGroupScores()"><i class="fa fa-download"></i>导出小组分</button>
+        <button onclick="exportPersonalScores()"><i class="fa fa-download"></i>导出个人分</button>
+        <!-- 总分榜下拉菜单 -->
+        <select id="periodSelector" onchange="changePeriod(this.value)">
+            <option value="current">🏆 本次课</option>
+            <option value="weekly">📅 周度总分</option>
+            <option value="monthly">📆 月度总分</option>
+            <option value="semester">📚 学期总分</option>
+            <option value="yearly">🗓️ 年度总分</option>
+        </select>
+        <button onclick="document.getElementById('fileInput').click()"><i class="fa fa-upload"></i>上传Excel/CSV</button>
+        <button onclick="openGroupEditModal()"><i class="fa fa-pencil-square-o"></i>编辑分组</button>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.txt" onchange="handleFileUpload(event)">
+    </div>
+
+    <!-- 主内容区 -->
+    <div id="main-content">
+        <div id="rollName">Ready</div>
+        <div class="control-row">
+            <button onclick="startRoll()"><i class="fa fa-play"></i>开始点名</button>
+            <button onclick="stopRoll()"><i class="fa fa-stop"></i>暂停点名</button>
+            <span style="margin-left:15px;">🚀 点名速度</span>
+            <input type="range" id="speedSlider" min="10" max="200" value="10" oninput="changeSpeed(this.value)" style="width:150px;">
+        </div>
+        <div class="groups" id="groups"></div>
+    </div>
+
+    <!-- 右侧排行榜 (小组排名) -->
+    <div id="ranking"></div>
+
+    <!-- 个人分数弹窗 (用于编辑或查看排名) -->
+    <div id="scoreRecordModal">
+        <div id="scoreRecordContent"></div>
+    </div>
+
+    <!-- 分组编辑弹窗 -->
+    <div id="groupEditModal">
+        <div id="groupEditContent">
+            <button id="closeGroupEditButton" onclick="closeGroupEditModal()"><i class="fa fa-times"></i>关闭</button>
+            <h2 style="font-size:2.5rem;">✎ 手动分组</h2>
+            <div style="margin:10px 0; font-size:1.5rem;">
+                <div style="font-weight:bold;">现有学生：</div>
+                <div id="studentListRef" style="background:#0a1e2e;"></div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="addGroupInput()"><i class="fa fa-plus"></i>添加一组</button>
+                <button onclick="removeGroupInput()"><i class="fa fa-minus"></i>移除最后一组</button>
+                <button onclick="resetToAverageGroups()"><i class="fa fa-retweet"></i>重置为平均分组</button>
+            </div>
+            <div id="groupInputsContainer"></div>
+            <div class="modal-buttons">
+                <button onclick="applyGroupEdit()"><i class="fa fa-check"></i>保存分组并重置分数</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 悬浮球 (可拖拽) -->
+    <div id="floatingBall" title="点击切换显示/隐藏面板">
+        <i class="fa fa-star"></i>
+    </div>
+
+    <script>
+        // -------------------- 全局数据 --------------------
+        // 班级列表元数据
+        let classesList = [
+            { id: 'class1', name: '班级A' },
+            { id: 'class2', name: '班级B' }
+        ];
+
+        // 班级数据存储，每个班级独立存储完整状态
+        let classesData = {};
+
+        // 当前班级ID
+        let currentClass = 'class1';
+
+        // 默认学生列表（仅用于班级A初始化）
+        const studentsClass1 = [
+            "薛博", "洪韵", "邢靖泽", "乌勒吉",
+            "陈渺", "胡昱洁", "杨芸赫", "李明颢",
+            "李邦博", "吕筱萌", "张思琪", "赵城博",
+            "赵若涵", "刘晋恺", "马士钰", "吴晋瑶",
+            "谢雨哲", "冯莫凡", "余海阅", "胡昊淼",
+            "张书遥", "赵一朵朵", "赵一帆", "苑子涵",
+            "王文康", "武堃", "王小硕", "杨苗粲",
+            "阿吉泰", "杨泽", "严梓豪", "秦坤",
+            "潘嘉易"  
+        ];
+
+        // 班级B初始化为空（全新界面，需上传名单）
+        // 不再使用 studentsClass2
+
+        // 当前显示的班级数据（全局变量，与当前班级同步）
+        let students = [];
+        let groups = [];
+        let individualScores = [];
+
+        // 其他全局状态
+        let rolling = false;
+        let rollSpeed = 200;
+        let savedScores = []; // 不再使用，保留但不会影响
+        let lastRolledIndex = 0;
+        const prizes = [];
+        let isLotteryRolling = false;
+        let lotteryInterval;
+        let lotterySpeed = 100;
+        let currentPeriod = 'current';
+
+        // -------------------- 音效系统 (可爱版) --------------------
+        let audioCtx = null;
+        function initAudio() {
+            if (audioCtx) {
+                if (audioCtx.state === 'suspended') audioCtx.resume().catch(e => {});
+                return;
+            }
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {}
+        }
+        function playAddSound() {
+            if (!audioCtx) initAudio();
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc2.type = 'sine';
+            osc1.frequency.setValueAtTime(1200, now);
+            osc1.frequency.exponentialRampToValueAtTime(800, now + 0.06);
+            osc2.frequency.setValueAtTime(1000, now);
+            osc2.frequency.exponentialRampToValueAtTime(600, now + 0.07);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.1);
+            osc2.stop(now + 0.1);
+        }
+        function playSubtractSound() {
+            if (!audioCtx) initAudio();
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(500, now);
+            osc.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        }
+        function playRollSound() {
+            if (!audioCtx) initAudio();
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+        function playStopSound() {
+            if (!audioCtx) initAudio();
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.value = 523.25;
+            osc2.type = 'sine';
+            osc2.frequency.value = 659.25;
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.6);
+            osc2.stop(now + 0.6);
+        }
+
+        // -------------------- 持久化存储 --------------------
+        // 保存所有班级数据到 localStorage（只保存周期分，本次课分置0）
+        function saveAllData() {
+            try {
+                // 深拷贝一份数据，将本次课分全部置0
+                const dataCopy = {
+                    classesList: JSON.parse(JSON.stringify(classesList)),
+                    classesData: {}
+                };
+                for (let classId in classesData) {
+                    const classData = classesData[classId];
+                    // 深拷贝班级数据
+                    const classCopy = {
+                        students: [...classData.students],
+                        groups: classData.groups.map(g => ({
+                            members: [...g.members],
+                            score: 0, // 本次课分不保存
+                            weekly: g.weekly,
+                            monthly: g.monthly,
+                            semester: g.semester,
+                            yearly: g.yearly
+                        })),
+                        individualScores: classData.individualScores.map(s => ({
+                            name: s.name,
+                            group: s.group,
+                            score: 0, // 本次课个人分不保存
+                            weekly: s.weekly,
+                            monthly: s.monthly,
+                            semester: s.semester,
+                            yearly: s.yearly
+                        }))
+                    };
+                    dataCopy.classesData[classId] = classCopy;
+                }
+                localStorage.setItem('classData', JSON.stringify(dataCopy));
+                alert('所有班级数据已保存到本地！');
+            } catch (e) {
+                alert('保存失败：' + e.message);
+            }
+        }
+
+        // 从 localStorage 加载所有班级数据，返回 true 表示成功加载
+        function loadAllData() {
+            const saved = localStorage.getItem('classData');
+            if (!saved) return false;
+            try {
+                const parsed = JSON.parse(saved);
+                // 验证必要字段
+                if (parsed.classesList && parsed.classesData) {
+                    classesList = parsed.classesList;
+                    classesData = parsed.classesData;
+                    return true;
+                }
+            } catch (e) {
+                console.warn('解析存储数据失败', e);
+            }
+            return false;
+        }
+
+        // -------------------- 辅助函数 (分组相关) --------------------
+        function createGroup(members) {
+            return {
+                members: [...members],
+                score: 0,        // 本次课分
+                weekly: 0,
+                monthly: 0,
+                semester: 0,
+                yearly: 0
+            };
+        }
+
+        function initGroupsFromStudents(studentList) {
+            const newGroups = [];
+            for (let i = 0; i < studentList.length; i += 4) {
+                newGroups.push(createGroup(studentList.slice(i, i + 4)));
+            }
+            return newGroups;
+        }
+
+        function rebuildIndividualScoresFromGroups(groupsList) {
+            const scores = [];
+            groupsList.forEach((group, gIndex) => {
+                group.members.forEach(name => {
+                    scores.push({ 
+                        name, 
+                        group: gIndex + 1, 
+                        score: 0,        // 本次课个人分
+                        weekly: 0,
+                        monthly: 0,
+                        semester: 0,
+                        yearly: 0
+                    });
+                });
+            });
+            return scores;
+        }
+
+        // 保存当前班级数据到存储（深拷贝，保留所有分，用于内存切换）
+        function saveCurrentClassToData() {
+            classesData[currentClass] = {
+                students: [...students],
+                groups: groups.map(g => ({
+                    ...g,
+                    members: [...g.members]
+                })),
+                individualScores: individualScores.map(s => ({ ...s }))
+            };
+        }
+
+        // 加载指定班级的数据到全局变量，并渲染（深拷贝），并将本次课分全部置0
+        function loadClass(classId) {
+            if (!classesData[classId]) {
+                // 如果班级没有数据，初始化为空
+                students = [];
+                groups = [];
+                individualScores = [];
+            } else {
+                const data = classesData[classId];
+                students = [...data.students];
+                groups = data.groups.map(g => ({
+                    ...g,
+                    members: [...g.members],
+                    score: 0  // 本次课分强制置0
+                }));
+                individualScores = data.individualScores.map(s => ({
+                    ...s,
+                    score: 0  // 本次课个人分强制置0
+                }));
+            }
+            // 更新界面
+            renderGroups();
+            lastRolledIndex = 0;
+            document.getElementById('rollName').textContent = 'Ready';
+            updateRanking();
+        }
+
+        // 切换班级
+        function switchClass(classId) {
+            if (classId === currentClass) return;
+            // 保存当前班级
+            saveCurrentClassToData();
+            // 切换
+            currentClass = classId;
+            loadClass(classId);
+            // 更新下拉框显示
+            document.getElementById('classSelector').value = currentClass;
+        }
+
+        // 渲染分组
+        function renderGroups() {
+            const container = document.getElementById('groups');
+            container.innerHTML = '';
+            if (groups.length === 0) {
+                container.innerHTML = '<div class="empty-groups">🚀 当前班级暂无分组，请上传名单或编辑分组</div>';
+                return;
+            }
+            groups.forEach((group, i) => {
+                const div = document.createElement('div');
+                div.className = 'group';
+                let memberHTML = '';
+                group.members.forEach(member => {
+                    memberHTML += `<div onclick="editStudentScore('${member}')">${member}</div>`;
+                });
+                div.innerHTML = `
+                    <div>✨ 第${i+1}组 ✨</div>
+                    <div class="score">
+                        <button onclick="changeScore(${i}, -1)"><i class="fa fa-minus"></i></button>
+                        <span id="score-${i}">${group.score}</span>
+                        <button onclick="changeScore(${i}, 1)"><i class="fa fa-plus"></i></button>
+                    </div>
+                    ${memberHTML}
+                `;
+                container.appendChild(div);
+            });
+            updateRanking();
+        }
+
+        // 更新排行榜
+        function updateRanking() {
+            let sorted;
+            let title;
+            if (currentPeriod === 'current') {
+                sorted = [...groups].sort((a, b) => b.score - a.score);
+                title = '本次课';
+            } else {
+                const key = currentPeriod;
+                sorted = [...groups].sort((a, b) => b[key] - a[key]);
+                title = currentPeriod === 'weekly' ? '周度' : currentPeriod === 'monthly' ? '月度' : currentPeriod === 'semester' ? '学期' : '年度';
+            }
+            const rankingDiv = document.getElementById('ranking');
+            rankingDiv.innerHTML = `
+                <div class="ranking-header">
+                    <span>🏆</span>
+                    <span>${title}小组排行榜</span>
+                    <span>🏆</span>
+                </div>
+                ${sorted.map((g, i) => {
+                    const groupIndex = groups.indexOf(g);
+                    const score = currentPeriod === 'current' ? g.score : g[currentPeriod];
+                    return `
+                        <div class="rank-item">
+                            ${i < 3 ? '🌠'.repeat(3-i) : ''} 组${groupIndex+1}
+                            <span style="color:#ffff66;">${score}分</span>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        // 修改小组分数（同时更新所有周期分）
+        function changeScore(groupIndex, delta) {
+            groups[groupIndex].score = Math.max(0, +groups[groupIndex].score + delta);
+            groups[groupIndex].weekly = Math.max(0, +groups[groupIndex].weekly + delta);
+            groups[groupIndex].monthly = Math.max(0, +groups[groupIndex].monthly + delta);
+            groups[groupIndex].semester = Math.max(0, +groups[groupIndex].semester + delta);
+            groups[groupIndex].yearly = Math.max(0, +groups[groupIndex].yearly + delta);
+
+            const scoreSpan = document.getElementById(`score-${groupIndex}`);
+            if (scoreSpan) {
+                scoreSpan.textContent = groups[groupIndex].score;
+            }
+            localStorage.setItem(`group-${groupIndex}`, groups[groupIndex].score);
+            updateRanking();
+            if (delta > 0) {
+                if (scoreSpan) {
+                    scoreSpan.classList.add('score-pop');
+                    setTimeout(() => scoreSpan.classList.remove('score-pop'), 200);
+                }
+                playAddSound();
+            } else if (delta < 0) {
+                playSubtractSound();
+            }
+            saveCurrentClassToData(); // 立即保存到当前班级（内存）
+        }
+
+        // 点名
+        function startRoll() {
+            if (rolling) return;
+            initAudio();
+            rolling = true;
+            const roll = () => {
+                if (!rolling) return;
+                lastRolledIndex = (lastRolledIndex + 1) % students.length;
+                document.getElementById('rollName').textContent = students[lastRolledIndex];
+                playRollSound();
+                setTimeout(roll, rollSpeed);
+            }
+            roll();
+        }
+        function stopRoll() {
+            if (!rolling) return;
+            rolling = false;
+            playStopSound();
+        }
+        function changeSpeed(speed) { rollSpeed = 210 - speed; }
+
+        function addScoreToAllGroups(delta) { groups.forEach((_, i) => changeScore(i, delta)); }
+
+        // 重写保存分数：持久化所有班级数据（本次课分不保存）
+        function saveScores() {
+            // 确保当前班级数据已更新到 classesData
+            saveCurrentClassToData();
+            saveAllData();
+        }
+
+        // 重写恢复分数：从 localStorage 加载数据并刷新界面，本次课分置0
+        function restoreScores() {
+            if (loadAllData()) {
+                // 重新加载当前班级数据
+                loadClass(currentClass);
+                // 更新班级选择器显示
+                updateClassSelector();
+                alert('已从本地恢复上次保存的数据');
+            } else {
+                alert('没有找到保存的数据');
+            }
+        }
+
+        function clearAllScores() {
+            groups.forEach((g, i) => {
+                g.score = 0;
+                g.weekly = 0;
+                g.monthly = 0;
+                g.semester = 0;
+                g.yearly = 0;
+                const span = document.getElementById(`score-${i}`);
+                if (span) span.textContent = 0;
+                localStorage.setItem(`group-${i}`, 0);
+            });
+            // 个人分也清零
+            individualScores.forEach(s => {
+                s.score = 0;
+                s.weekly = 0;
+                s.monthly = 0;
+                s.semester = 0;
+                s.yearly = 0;
+            });
+            updateRanking();
+            saveCurrentClassToData();
+        }
+
+        // 个人分数相关
+        function renderStars(score) {
+            // 确保 score 是数字，避免传入 undefined/null 导致 NaN
+            score = Number(score) || 0;
+            let starCount = Math.min(score, 3);
+            let stars = '';
+            for (let i = 0; i < starCount; i++) {
+                stars += '<span class="star-icon">★</span>';
+            }
+            return stars;
+        }
+
+        function editStudentScore(studentName) {
+            const index = individualScores.findIndex(s => s.name === studentName);
+            if (index === -1) {
+                alert('学生不存在');
+                return;
+            }
+            const student = individualScores[index];
+            const modal = document.getElementById('scoreRecordModal');
+            const content = document.getElementById('scoreRecordContent');
+            // 使用卡通关闭按钮
+            let html = '<button class="close-btn" onclick="closeScoreRecordModal()"><i class="fa fa-times"></i>关闭</button>';
+            html += '<h2 class="modal-title">🌟 ' + student.name + ' 的星星罐子 🌟</h2>';
+            html += `<div style="display:flex; flex-direction:column; align-items:center; gap:20px;">`;
+            html += `<div class="jar" style="width:200px;" id="singleJar">`;
+            html += `<div class="stars-container" id="singleJarStars">${renderStars(student.score)}</div>`;
+            html += `<div class="jar-score" id="singleJarScore">${student.score}</div>`;
+            html += `</div>`;
+            html += `<div style="display:flex; gap:20px;">`;
+            // 加减按钮应用卡通样式：减一颗黄色，加一颗绿色
+            html += `<button class="candy-btn minus" onclick="changeSingleStudentScore('${studentName}', -1)"><i class="fa fa-minus"></i> 减一颗</button>`;
+            html += `<button class="candy-btn plus" onclick="changeSingleStudentScore('${studentName}', 1)"><i class="fa fa-plus"></i> 加一颗</button>`;
+            html += `</div>`;
+            html += `</div>`;
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+
+        function changeSingleStudentScore(name, delta) {
+            const index = individualScores.findIndex(s => s.name === name);
+            if (index === -1) return;
+            // 使用安全加法，避免 NaN
+            individualScores[index].score = Math.max(0, (Number(individualScores[index].score) || 0) + delta);
+            individualScores[index].weekly = Math.max(0, (Number(individualScores[index].weekly) || 0) + delta);
+            individualScores[index].monthly = Math.max(0, (Number(individualScores[index].monthly) || 0) + delta);
+            individualScores[index].semester = Math.max(0, (Number(individualScores[index].semester) || 0) + delta);
+            individualScores[index].yearly = Math.max(0, (Number(individualScores[index].yearly) || 0) + delta);
+
+            const starsDiv = document.getElementById('singleJarStars');
+            const scoreDiv = document.getElementById('singleJarScore');
+            if (starsDiv && scoreDiv) {
+                starsDiv.innerHTML = renderStars(individualScores[index].score);
+                scoreDiv.textContent = individualScores[index].score;
+            }
+            if (delta > 0) playAddSound(); else if (delta < 0) playSubtractSound();
+            saveCurrentClassToData();
+        }
+
+        function editPersonalScores() {
+            const modal = document.getElementById('scoreRecordModal');
+            const content = document.getElementById('scoreRecordContent');
+            // 使用卡通关闭按钮
+            let html = '<button class="close-btn" onclick="closeScoreRecordModal()"><i class="fa fa-times"></i>关闭</button>';
+            html += '<h2 class="modal-title">🌟 个人星星 🌟</h2>';
+            html += '<div style="grid-column:1/-1; max-height:70vh; overflow-y:auto;">';
+
+            individualScores.forEach((s, idx) => {
+                html += `
+                    <div class="student-jar-item" id="jar-edit-${idx}">
+                        <div class="info">组${s.group} · ${s.name}</div>
+                        <div class="jar" id="jar-${idx}">
+                            <div class="stars-container" id="stars-${idx}">${renderStars(s.score)}</div>
+                            <div class="jar-score" id="jar-score-${idx}">${s.score}</div>
+                        </div>
+                        <div class="controls">
+                            <button onclick="changePersonalScore(${idx}, -1)"><i class="fa fa-minus"></i></button>
+                            <button onclick="changePersonalScore(${idx}, 1)"><i class="fa fa-plus"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+
+        function changePersonalScore(idx, delta) {
+            if (idx < 0 || idx >= individualScores.length) return;
+            // 使用安全加法，避免 NaN
+            individualScores[idx].score = Math.max(0, (Number(individualScores[idx].score) || 0) + delta);
+            individualScores[idx].weekly = Math.max(0, (Number(individualScores[idx].weekly) || 0) + delta);
+            individualScores[idx].monthly = Math.max(0, (Number(individualScores[idx].monthly) || 0) + delta);
+            individualScores[idx].semester = Math.max(0, (Number(individualScores[idx].semester) || 0) + delta);
+            individualScores[idx].yearly = Math.max(0, (Number(individualScores[idx].yearly) || 0) + delta);
+
+            const starsContainer = document.getElementById(`stars-${idx}`);
+            const scoreSpan = document.getElementById(`jar-score-${idx}`);
+            if (starsContainer && scoreSpan) {
+                starsContainer.innerHTML = renderStars(individualScores[idx].score);
+                scoreSpan.textContent = individualScores[idx].score;
+            }
+            if (delta > 0) playAddSound(); else if (delta < 0) playSubtractSound();
+            saveCurrentClassToData();
+        }
+
+        // 查看个人排行榜（按周期显示，无加减按钮，带周期下拉）
+        function viewRankingScores(period = 'current') {
+            const modal = document.getElementById('scoreRecordModal');
+            const content = document.getElementById('scoreRecordContent');
+            
+            // 头部：关闭按钮和周期下拉同行
+            let html = '<div class="personal-header">';
+            html += '<button class="close-btn" onclick="closeScoreRecordModal()"><i class="fa fa-times"></i>关闭</button>';
+            html += '<select id="personalPeriodSelect" onchange="viewRankingScores(this.value)">';
+            const periods = [
+                { value: 'current', label: '🏆 本次课' },
+                { value: 'weekly', label: '📅 周度总分' },
+                { value: 'monthly', label: '📆 月度总分' },
+                { value: 'semester', label: '📚 学期总分' },
+                { value: 'yearly', label: '🗓️ 年度总分' }
+            ];
+            periods.forEach(p => {
+                html += `<option value="${p.value}" ${period === p.value ? 'selected' : ''}>${p.label}</option>`;
+            });
+            html += '</select>';
+            html += '</div>';
+
+            let periodName = '本次课';
+            let key = 'score';
+            if (period === 'weekly') { periodName = '周度'; key = 'weekly'; }
+            else if (period === 'monthly') { periodName = '月度'; key = 'monthly'; }
+            else if (period === 'semester') { periodName = '学期'; key = 'semester'; }
+            else if (period === 'yearly') { periodName = '年度'; key = 'yearly'; }
+            
+            html += `<h2 class="modal-title">🏅 个人${periodName}星星排行榜 🏅</h2>`;
+            html += '<div style="grid-column:1/-1; max-height:70vh; overflow-y:auto;">';
+
+            // 排序：使用数字比较，避免 NaN 影响
+            const sorted = [...individualScores].sort((a, b) => {
+                const scoreA = Number(a[key]) || 0;
+                const scoreB = Number(b[key]) || 0;
+                return scoreB - scoreA;
+            });
+
+            sorted.forEach((s, rank) => {
+                // 确保分数为数字，避免显示 undefined/null
+                const score = Number(s[key]) || 0;
+                html += `
+                    <div class="student-jar-item">
+                        <div class="info">第${rank+1}名 · 组${s.group} · ${s.name}</div>
+                        <div class="jar">
+                            <div class="stars-container">${renderStars(score)}</div>
+                            <div class="jar-score">${score}</div>
+                        </div>
+                        <!-- 加减按钮已移除 -->
+                    </div>
+                `;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+
+        // 原 changeRankingScore 不再使用，但保留以防其他调用
+        function changeRankingScore(name, delta) {
+            // 此函数已弃用（无按钮调用）
+        }
+
+        function closeScoreRecordModal() {
+            document.getElementById('scoreRecordModal').style.display = 'none';
+            // 如果有抽奖停止，保留原逻辑
+            if (typeof stopLottery === 'function') stopLottery();
+        }
+
+        // 上传Excel
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'xlsx' || ext === 'xls') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                    let newStudents = [];
+                    rows.forEach(row => { if (row && row.length && row[0] && typeof row[0] === 'string' && row[0].trim()) newStudents.push(row[0].trim()); });
+                    applyNewList([...new Set(newStudents)]);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const lines = e.target.result.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+                    applyNewList([...new Set(lines)]);
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+            document.getElementById('fileInput').value = '';
+        }
+
+        function applyNewList(list) {
+            if (list.length === 0) { alert('无有效姓名'); return; }
+            students = list;
+            groups = initGroupsFromStudents(students);
+            individualScores = rebuildIndividualScoresFromGroups(groups);
+            renderGroups();
+            lastRolledIndex = 0;
+            document.getElementById('rollName').textContent = 'Ready';
+            saveCurrentClassToData(); // 保存到当前班级
+            alert(`已加载 ${students.length} 位宇航员~`);
+        }
+
+        // 班级管理
+        function updateClassSelector() {
+            const selector = document.getElementById('classSelector');
+            selector.innerHTML = '';
+            classesList.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = cls.name;
+                selector.appendChild(option);
+            });
+            selector.value = currentClass;
+        }
+
+        function addNewClass() {
+            let newName = prompt('请输入新班级名称', '新班级');
+            if (!newName) return;
+            const newId = 'class_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            classesList.push({ id: newId, name: newName });
+            // 新班级初始数据为空
+            classesData[newId] = {
+                students: [],
+                groups: [],
+                individualScores: []
+            };
+            updateClassSelector();
+            // 切换到新班级
+            saveCurrentClassToData(); // 保存当前班级（以防万一）
+            currentClass = newId;
+            updateClassSelector();
+            loadClass(newId);
+        }
+
+        function deleteCurrentClass() {
+            if (classesList.length <= 1) {
+                alert('至少保留一个班级');
+                return;
+            }
+            if (!confirm(`确定要删除班级 "${classesList.find(c => c.id === currentClass).name}" 吗？`)) return;
+            const index = classesList.findIndex(c => c.id === currentClass);
+            classesList.splice(index, 1);
+            delete classesData[currentClass];
+            // 切换到第一个班级
+            currentClass = classesList[0].id;
+            updateClassSelector();
+            loadClass(currentClass);
+        }
+
+        function renameCurrentClass() {
+            const selector = document.getElementById('classSelector');
+            const currentId = selector.value;
+            const cls = classesList.find(c => c.id === currentId);
+            if (!cls) return;
+            let newName = prompt('输入新的班级名称', cls.name);
+            if (newName && newName.trim() !== '') {
+                cls.name = newName.trim();
+                updateClassSelector();
+            }
+        }
+
+        function changePeriod(period) {
+            currentPeriod = period;
+            updateRanking();
+        }
+
+        // 编辑分组
+        function openGroupEditModal() {
+            document.getElementById('groupEditModal').style.display = 'flex';
+            document.getElementById('studentListRef').innerText = students.join(' · ');
+            renderGroupInputs(groups.map(g => g.members.join(', ')));
+        }
+        function renderGroupInputs(arr) {
+            const container = document.getElementById('groupInputsContainer');
+            container.innerHTML = '';
+            arr.forEach((str, i) => {
+                const inp = document.createElement('input');
+                inp.value = str; inp.placeholder = `第${i+1}组，用逗号分隔`;
+                container.appendChild(inp);
+            });
+        }
+        function addGroupInput() {
+            const c = document.getElementById('groupInputsContainer');
+            const inp = document.createElement('input');
+            inp.placeholder = `第${c.children.length+1}组，用逗号分隔`;
+            c.appendChild(inp);
+        }
+        function removeGroupInput() {
+            const c = document.getElementById('groupInputsContainer');
+            if (c.children.length > 1) c.removeChild(c.lastChild); else alert('至少保留一个组');
+        }
+        function resetToAverageGroups() {
+            const avg = initGroupsFromStudents(students);
+            renderGroupInputs(avg.map(g => g.members.join(', ')));
+        }
+        function applyGroupEdit() {
+            const inputs = document.querySelectorAll('#groupInputsContainer input');
+            if (inputs.length === 0) return alert('至少一组');
+            let newGroups = [], allNames = [], error = false;
+            for (let i = 0; i < inputs.length; i++) {
+                let members = inputs[i].value.split(',').map(s => s.trim()).filter(s => s);
+                if (members.length === 0) { error = true; alert(`第${i+1}组为空`); break; }
+                for (let n of members) { if (!students.includes(n)) { error = true; alert(`"${n}"不在名单`); break; } }
+                if (error) break;
+                allNames.push(...members);
+                newGroups.push(createGroup(members));
+            }
+            if (error) return;
+            const dup = [...new Set(allNames.filter((n, idx) => allNames.indexOf(n) !== idx))];
+            if (dup.length) { alert(`重复学生: ${dup.join(', ')}`); return; }
+            const missing = students.filter(s => !allNames.includes(s));
+            if (missing.length) { alert(`未分配: ${missing.join(', ')}`); return; }
+            groups = newGroups;
+            // 重置所有分数为0（因为分组变了，积分清零）
+            groups.forEach(g => { g.score = 0; g.weekly = 0; g.monthly = 0; g.semester = 0; g.yearly = 0; });
+            individualScores = rebuildIndividualScoresFromGroups(groups);
+            renderGroups();
+            closeGroupEditModal();
+            saveCurrentClassToData();
+        }
+        function closeGroupEditModal() { document.getElementById('groupEditModal').style.display = 'none'; }
+
+        // 生成星星
+        function createStars() {
+            for (let i = 0; i < 150; i++) {
+                const s = document.createElement('div');
+                s.className = 'star';
+                s.style.width = (Math.random() * 5 + 1) + 'px';
+                s.style.height = s.style.width;
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                s.style.animationDelay = Math.random() * 5 + 's';
+                s.style.animationDuration = (Math.random() * 4 + 2) + 's';
+                document.getElementById('space-effects').appendChild(s);
+            }
+        }
+
+        // 悬浮球
+        function initFloatingBall() {
+            const ball = document.getElementById('floatingBall');
+            let offsetX, offsetY, isDragging = false;
+
+            ball.addEventListener('mousedown', (e) => {
+                isDragging = false;
+                offsetX = e.clientX - ball.getBoundingClientRect().left;
+                offsetY = e.clientY - ball.getBoundingClientRect().top;
+                ball.style.cursor = 'grabbing';
+
+                const onMouseMove = (e) => {
+                    isDragging = true;
+                    const left = e.clientX - offsetX;
+                    const top = e.clientY - offsetY;
+                    ball.style.left = left + 'px';
+                    ball.style.right = 'auto';
+                    ball.style.bottom = 'auto';
+                    ball.style.top = top + 'px';
+                };
+
+                const onMouseUp = () => {
+                    ball.style.cursor = 'grab';
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    if (!isDragging) {
+                        toggleMainUI();
+                    }
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                e.preventDefault();
+            });
+        }
+
+        function toggleMainUI() {
+            const leftToolbar = document.getElementById('left-toolbar');
+            const mainContent = document.getElementById('main-content');
+            const ranking = document.getElementById('ranking');
+            const isHidden = leftToolbar.style.display === 'none';
+            if (isHidden) {
+                leftToolbar.style.display = 'flex';
+                mainContent.style.display = 'flex';
+                ranking.style.display = 'block';
+            } else {
+                leftToolbar.style.display = 'none';
+                mainContent.style.display = 'none';
+                ranking.style.display = 'none';
+            }
+        }
+
+        // 初始化系统
+        function initialize() {
+            // 尝试从本地存储加载数据
+            if (!loadAllData()) {
+                // 无存储数据，使用默认初始化
+                // 初始化班级1（班级A）
+                const groups1 = initGroupsFromStudents(studentsClass1);
+                const indScores1 = rebuildIndividualScoresFromGroups(groups1);
+                classesData.class1 = {
+                    students: [...studentsClass1],
+                    groups: groups1.map(g => ({ ...g, members: [...g.members] })),
+                    individualScores: indScores1.map(s => ({ ...s }))
+                };
+
+                // 初始化班级2（班级B）为完全空状态，需上传名单
+                classesData.class2 = {
+                    students: [],
+                    groups: [],
+                    individualScores: []
+                };
+
+                // 加载默认班级（班级A）
+                currentClass = 'class1';
+                students = [...studentsClass1];
+                groups = classesData.class1.groups.map(g => ({ ...g, members: [...g.members], score: 0 }));
+                individualScores = classesData.class1.individualScores.map(s => ({ ...s, score: 0 }));
+            } else {
+                // 已从存储加载，确保当前班级变量同步，并将本次课分置0
+                if (classesList.length > 0) {
+                    currentClass = classesList[0].id;
+                } else {
+                    // 极端情况：无班级，重新创建默认
+                    classesList = [{ id: 'class1', name: '班级A' }];
+                    currentClass = 'class1';
+                }
+                // 加载该班级数据（loadClass 内部会置0本次课分）
+                loadClass(currentClass);
+            }
+
+            updateClassSelector();
+            renderGroups();
+            createStars();
+            initFloatingBall();
+            document.getElementById('periodSelector').value = 'current';
+        }
+
+        // -------------------- 导出功能（Excel格式，居中，带班级名） --------------------
+        // 导出小组分数为 Excel（包含所有周期列）
+        function exportGroupScores() {
+            if (!groups || groups.length === 0) {
+                alert('没有小组数据可导出');
+                return;
+            }
+            const className = classesList.find(c => c.id === currentClass)?.name || '未知班级';
+            // 准备数据
+            const data = [
+                ['组名', '本次课', '周度', '月度', '学期', '年度']
+            ];
+            groups.forEach((group, index) => {
+                data.push([
+                    `组${index + 1}`,
+                    Number(group.score) || 0,
+                    Number(group.weekly) || 0,
+                    Number(group.monthly) || 0,
+                    Number(group.semester) || 0,
+                    Number(group.yearly) || 0
+                ]);
+            });
+            // 创建工作表
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            // 设置列宽
+            ws['!cols'] = data[0].map(() => ({ wch: 15 }));
+            // 设置所有单元格居中
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; R++) {
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cell = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell]) continue;
+                    if (!ws[cell].s) ws[cell].s = {};
+                    ws[cell].s.alignment = { horizontal: 'center', vertical: 'center' };
+                }
+            }
+            // 创建工作簿并导出
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '小组分');
+            const fileName = `${className}_小组分_全部周期_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // 导出个人分数为 Excel（包含所有周期列）
+        function exportPersonalScores() {
+            if (!individualScores || individualScores.length === 0) {
+                alert('没有个人数据可导出');
+                return;
+            }
+            const className = classesList.find(c => c.id === currentClass)?.name || '未知班级';
+            // 准备数据
+            const data = [
+                ['姓名', '组号', '本次课', '周度', '月度', '学期', '年度']
+            ];
+            individualScores.forEach(s => {
+                data.push([
+                    s.name,
+                    `组${s.group}`,
+                    Number(s.score) || 0,
+                    Number(s.weekly) || 0,
+                    Number(s.monthly) || 0,
+                    Number(s.semester) || 0,
+                    Number(s.yearly) || 0
+                ]);
+            });
+            // 创建工作表
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            // 设置列宽
+            ws['!cols'] = data[0].map(() => ({ wch: 15 }));
+            // 设置所有单元格居中
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; R++) {
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cell = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell]) continue;
+                    if (!ws[cell].s) ws[cell].s = {};
+                    ws[cell].s.alignment = { horizontal: 'center', vertical: 'center' };
+                }
+            }
+            // 创建工作簿并导出
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '个人分');
+            const fileName = `${className}_个人分_全部周期_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        initialize();
+
+        // 全局函数暴露
+        window.changeScore = changeScore; window.startRoll = startRoll; window.stopRoll = stopRoll; window.changeSpeed = changeSpeed;
+        window.addScoreToAllGroups = addScoreToAllGroups; window.saveScores = saveScores; window.restoreScores = restoreScores;
+        window.clearAllScores = clearAllScores;
+        window.editPersonalScores = editPersonalScores;
+        window.viewRankingScores = viewRankingScores;
+        window.changePersonalScore = changePersonalScore;
+        window.editStudentScore = editStudentScore;
+        window.changeSingleStudentScore = changeSingleStudentScore;
+        window.changeRankingScore = changeRankingScore;
+        window.closeScoreRecordModal = closeScoreRecordModal;
+        window.handleFileUpload = handleFileUpload; window.openGroupEditModal = openGroupEditModal;
+        window.addGroupInput = addGroupInput; window.removeGroupInput = removeGroupInput; window.resetToAverageGroups = resetToAverageGroups;
+        window.applyGroupEdit = applyGroupEdit; window.closeGroupEditModal = closeGroupEditModal;
+        window.switchClass = switchClass;  // 确保全局可用
+        window.addNewClass = addNewClass;
+        window.deleteCurrentClass = deleteCurrentClass;
+        window.renameCurrentClass = renameCurrentClass;
+        window.changePeriod = changePeriod;
+        window.startLottery = function() {}; window.stopLottery = function() {}; window.changeLotterySpeed = function() {};
+        window.exportGroupScores = exportGroupScores;
+        window.exportPersonalScores = exportPersonalScores;
+    </script>
+</body>
+</html>
