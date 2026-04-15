@@ -362,30 +362,29 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 1.6rem; /* 调小一号 */
+            font-size: 1.6rem;
             margin-bottom: 15px;
-            color: #ffff00; /* 荧光黄 */
-            font-weight: bold; /* 加粗 */
-            font-family: 'SimHei', 'Hei', 'Microsoft YaHei', '黑体', sans-serif; /* 黑体 */
-            /* 移除发光效果 */
+            color: #ffff00;
+            font-weight: bold;
+            font-family: 'SimHei', 'Hei', 'Microsoft YaHei', '黑体', sans-serif;
         }
         .ranking-header span {
-            font-size: 1.6rem; /* 与父级一致 */
+            font-size: 1.6rem;
         }
         .rank-item {
-            font-size: 1.8rem; /* 加大两号 */
+            font-size: 1.8rem;
             font-weight: bold;
             margin: 8px 0;
             padding: 8px 12px;
             background: rgba(0, 60, 100, 0.5);
             border-radius: 30px 5px 30px 5px;
             border: 2px solid #1ecbe8;
-            white-space: nowrap; /* 强制一行 */
+            white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* 超长加省略号 */
+            text-overflow: ellipsis;
         }
         .rank-item span:last-child {
-            color: #ffcc00; /* 金黄色 */
+            color: #ffcc00;
             float: right;
             font-weight: bold;
         }
@@ -541,9 +540,9 @@
 
         /* ========== 新增卡通关闭按钮样式 ========== */
         .close-btn {
-            font-size: 1.8rem; /* 加大字号 */
+            font-size: 1.8rem;
             padding: 15px 30px;
-            background: #ffaa00; /* 卡通黄色 */
+            background: #ffaa00;
             border: 4px solid #fff5b0;
             border-radius: 60px 20px 60px 20px;
             color: #1a2a4a;
@@ -572,7 +571,7 @@
             padding: 0 5px;
         }
         .personal-header .close-btn {
-            margin-bottom: 0; /* 覆盖默认下边距 */
+            margin-bottom: 0;
         }
         #personalPeriodSelect {
             font-size: 1.8rem;
@@ -586,7 +585,7 @@
 
         /* ========== 新增卡通加减按钮样式 ========== */
         .candy-btn {
-            font-size: 2rem;          /* 大号字体 */
+            font-size: 2rem;
             padding: 15px 25px;
             border-radius: 60px 20px 60px 20px;
             border: 4px solid #fff5b0;
@@ -598,7 +597,7 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            background: #ffaa00; /* 默认黄色 */
+            background: #ffaa00;
         }
         .candy-btn i {
             font-size: 2.2rem;
@@ -609,7 +608,7 @@
         }
         /* 减一颗按钮（黄色） */
         .candy-btn.minus {
-            background: #ffaa00; /* 黄色 */
+            background: #ffaa00;
             box-shadow: 0 0 20px #ffd966, 0 6px 0 #b37400;
         }
         .candy-btn.minus:hover {
@@ -622,6 +621,24 @@
         }
         .candy-btn.plus:hover {
             box-shadow: 0 0 30px #c0f0cc, 0 8px 0 #3d8c4a;
+        }
+        
+        /* 云端提示样式 */
+        #cloudToast {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: rgba(0,0,0,0.85);
+            color: #0cf;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            border: 1px solid #0cf;
+            font-family: monospace;
+            transition: opacity 0.3s;
+            pointer-events: none;
         }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -668,7 +685,6 @@
 
     <!-- 左侧竖排工具栏 -->
     <div id="left-toolbar">
-        <!-- 修改: 增加 onchange 事件实现班级切换 -->
         <select id="classSelector" onchange="switchClass(this.value)" ondblclick="renameCurrentClass()"></select>
         <div class="class-management">
             <button onclick="addNewClass()"><i class="fa fa-plus"></i>添加</button>
@@ -680,10 +696,8 @@
         <button onclick="clearAllScores()"><i class="fa fa-trash"></i>清空分数</button>
         <button onclick="editPersonalScores()"><i class="fa fa-pencil-square-o"></i>记录个人分</button>
         <button onclick="viewRankingScores()"><i class="fa fa-trophy"></i>查看个人分</button>
-        <!-- 新增导出按钮 -->
         <button onclick="exportGroupScores()"><i class="fa fa-download"></i>导出小组分</button>
         <button onclick="exportPersonalScores()"><i class="fa fa-download"></i>导出个人分</button>
-        <!-- 总分榜下拉菜单 -->
         <select id="periodSelector" onchange="changePeriod(this.value)">
             <option value="current">🏆 本次课</option>
             <option value="weekly">📅 周度总分</option>
@@ -743,20 +757,102 @@
     </div>
 
     <script>
-        // -------------------- 全局数据 --------------------
-        // 班级列表元数据
+        // ==================== 🌐 云端同步配置 ====================
+        // !!! 重要：请替换成你的 Google Apps Script Web App 网址 !!!
+        const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbwNawVlu_w7TfyKJ7_tZWVJ43HQo56wM1jIC3iVeqL4bgwS4rcFDefdv9rRdAcNmpzF/exec';
+        
+        let isSyncing = false;
+        let pendingSave = false;
+        let saveTimeout = null;
+        
+        // 显示提示消息
+        function showToast(msg, isError = false) {
+            let toast = document.getElementById('cloudToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'cloudToast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.color = isError ? '#ff6666' : '#0cf';
+            toast.style.borderColor = isError ? '#ff6666' : '#0cf';
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2500);
+        }
+        
+        // 从云端加载所有数据
+        async function loadFromCloud() {
+            try {
+                showToast('🌐 正在从云端加载数据...');
+                const response = await fetch(`${CLOUD_API_URL}?action=getAllData`);
+                const result = await response.json();
+                
+                if (result.success && result.classesList && result.classesData) {
+                    window.classesList = result.classesList;
+                    window.classesData = result.classesData;
+                    showToast('✅ 云端数据加载成功');
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.warn('云端加载失败:', e);
+                showToast('⚠️ 云端加载失败，使用本地数据', true);
+                return false;
+            }
+        }
+        
+        // 保存所有数据到云端
+        async function saveToCloud() {
+            if (isSyncing) {
+                pendingSave = true;
+                return;
+            }
+            
+            isSyncing = true;
+            try {
+                if (typeof saveCurrentClassToData === 'function') {
+                    saveCurrentClassToData();
+                }
+                
+                const dataToSave = {
+                    classesList: window.classesList,
+                    classesData: window.classesData
+                };
+                
+                const response = await fetch(`${CLOUD_API_URL}?action=saveAllData&data=${encodeURIComponent(JSON.stringify(dataToSave))}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('✅ 数据已同步到云端');
+                }
+            } catch (e) {
+                console.warn('云端保存失败:', e);
+            } finally {
+                isSyncing = false;
+                if (pendingSave) {
+                    pendingSave = false;
+                    saveToCloud();
+                }
+            }
+        }
+        
+        // 延迟保存（防抖）
+        function debounceSave() {
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveToCloud();
+            }, 500);
+        }
+        
+        // ==================== 全局数据 ====================
         let classesList = [
             { id: 'class1', name: '班级A' },
             { id: 'class2', name: '班级B' }
         ];
-
-        // 班级数据存储，每个班级独立存储完整状态
         let classesData = {};
-
-        // 当前班级ID
         let currentClass = 'class1';
-
-        // 默认学生列表（仅用于班级A初始化）
         const studentsClass1 = [
             "薛博", "洪韵", "邢靖泽", "乌勒吉",
             "陈渺", "胡昱洁", "杨芸赫", "李明颢",
@@ -768,28 +864,21 @@
             "阿吉泰", "杨泽", "严梓豪", "秦坤",
             "潘嘉易"  
         ];
-
-        // 班级B初始化为空（全新界面，需上传名单）
-        // 不再使用 studentsClass2
-
-        // 当前显示的班级数据（全局变量，与当前班级同步）
         let students = [];
         let groups = [];
         let individualScores = [];
-
-        // 其他全局状态
         let rolling = false;
         let rollSpeed = 200;
-        let savedScores = []; // 不再使用，保留但不会影响
+        let savedScores = [];
         let lastRolledIndex = 0;
         const prizes = [];
         let isLotteryRolling = false;
         let lotteryInterval;
         let lotterySpeed = 100;
         let currentPeriod = 'current';
-
-        // -------------------- 音效系统 (可爱版) --------------------
         let audioCtx = null;
+        
+        // 音效系统
         function initAudio() {
             if (audioCtx) {
                 if (audioCtx.state === 'suspended') audioCtx.resume().catch(e => {});
@@ -872,78 +961,14 @@
             osc1.stop(now + 0.6);
             osc2.stop(now + 0.6);
         }
-
-        // -------------------- 持久化存储 --------------------
-        // 保存所有班级数据到 localStorage（只保存周期分，本次课分置0）
-        function saveAllData() {
-            try {
-                // 深拷贝一份数据，将本次课分全部置0
-                const dataCopy = {
-                    classesList: JSON.parse(JSON.stringify(classesList)),
-                    classesData: {}
-                };
-                for (let classId in classesData) {
-                    const classData = classesData[classId];
-                    // 深拷贝班级数据
-                    const classCopy = {
-                        students: [...classData.students],
-                        groups: classData.groups.map(g => ({
-                            members: [...g.members],
-                            score: 0, // 本次课分不保存
-                            weekly: g.weekly,
-                            monthly: g.monthly,
-                            semester: g.semester,
-                            yearly: g.yearly
-                        })),
-                        individualScores: classData.individualScores.map(s => ({
-                            name: s.name,
-                            group: s.group,
-                            score: 0, // 本次课个人分不保存
-                            weekly: s.weekly,
-                            monthly: s.monthly,
-                            semester: s.semester,
-                            yearly: s.yearly
-                        }))
-                    };
-                    dataCopy.classesData[classId] = classCopy;
-                }
-                localStorage.setItem('classData', JSON.stringify(dataCopy));
-                alert('所有班级数据已保存到本地！');
-            } catch (e) {
-                alert('保存失败：' + e.message);
-            }
-        }
-
-        // 从 localStorage 加载所有班级数据，返回 true 表示成功加载
-        function loadAllData() {
-            const saved = localStorage.getItem('classData');
-            if (!saved) return false;
-            try {
-                const parsed = JSON.parse(saved);
-                // 验证必要字段
-                if (parsed.classesList && parsed.classesData) {
-                    classesList = parsed.classesList;
-                    classesData = parsed.classesData;
-                    return true;
-                }
-            } catch (e) {
-                console.warn('解析存储数据失败', e);
-            }
-            return false;
-        }
-
-        // -------------------- 辅助函数 (分组相关) --------------------
+        
+        // 辅助函数
         function createGroup(members) {
             return {
                 members: [...members],
-                score: 0,        // 本次课分
-                weekly: 0,
-                monthly: 0,
-                semester: 0,
-                yearly: 0
+                score: 0, weekly: 0, monthly: 0, semester: 0, yearly: 0
             };
         }
-
         function initGroupsFromStudents(studentList) {
             const newGroups = [];
             for (let i = 0; i < studentList.length; i += 4) {
@@ -951,77 +976,53 @@
             }
             return newGroups;
         }
-
         function rebuildIndividualScoresFromGroups(groupsList) {
             const scores = [];
             groupsList.forEach((group, gIndex) => {
                 group.members.forEach(name => {
-                    scores.push({ 
-                        name, 
-                        group: gIndex + 1, 
-                        score: 0,        // 本次课个人分
-                        weekly: 0,
-                        monthly: 0,
-                        semester: 0,
-                        yearly: 0
-                    });
+                    scores.push({ name, group: gIndex + 1, score: 0, weekly: 0, monthly: 0, semester: 0, yearly: 0 });
                 });
             });
             return scores;
         }
-
-        // 保存当前班级数据到存储（深拷贝，保留所有分，用于内存切换）
+        
         function saveCurrentClassToData() {
             classesData[currentClass] = {
                 students: [...students],
-                groups: groups.map(g => ({
-                    ...g,
-                    members: [...g.members]
-                })),
+                groups: groups.map(g => ({ ...g, members: [...g.members] })),
                 individualScores: individualScores.map(s => ({ ...s }))
             };
         }
-
-        // 加载指定班级的数据到全局变量，并渲染（深拷贝），并将本次课分全部置0
+        
         function loadClass(classId) {
             if (!classesData[classId]) {
-                // 如果班级没有数据，初始化为空
                 students = [];
                 groups = [];
                 individualScores = [];
             } else {
                 const data = classesData[classId];
                 students = [...data.students];
-                groups = data.groups.map(g => ({
-                    ...g,
-                    members: [...g.members],
-                    score: 0  // 本次课分强制置0
-                }));
-                individualScores = data.individualScores.map(s => ({
-                    ...s,
-                    score: 0  // 本次课个人分强制置0
-                }));
+                groups = data.groups.map(g => ({ ...g, members: [...g.members], score: 0 }));
+                individualScores = data.individualScores.map(s => ({ ...s, score: 0 }));
             }
-            // 更新界面
             renderGroups();
             lastRolledIndex = 0;
             document.getElementById('rollName').textContent = 'Ready';
             updateRanking();
         }
-
-        // 切换班级
-        function switchClass(classId) {
-            if (classId === currentClass) return;
-            // 保存当前班级
-            saveCurrentClassToData();
-            // 切换
-            currentClass = classId;
-            loadClass(classId);
-            // 更新下拉框显示
-            document.getElementById('classSelector').value = currentClass;
+        
+        function updateClassSelector() {
+            const selector = document.getElementById('classSelector');
+            selector.innerHTML = '';
+            classesList.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = cls.name;
+                selector.appendChild(option);
+            });
+            selector.value = currentClass;
         }
-
-        // 渲染分组
+        
         function renderGroups() {
             const container = document.getElementById('groups');
             container.innerHTML = '';
@@ -1049,8 +1050,7 @@
             });
             updateRanking();
         }
-
-        // 更新排行榜
+        
         function updateRanking() {
             let sorted;
             let title;
@@ -1081,8 +1081,8 @@
                 }).join('')}
             `;
         }
-
-        // 修改小组分数（同时更新所有周期分）
+        
+        // 修改小组分数（同时更新所有周期分，并触发云端同步）
         function changeScore(groupIndex, delta) {
             groups[groupIndex].score = Math.max(0, +groups[groupIndex].score + delta);
             groups[groupIndex].weekly = Math.max(0, +groups[groupIndex].weekly + delta);
@@ -1094,7 +1094,6 @@
             if (scoreSpan) {
                 scoreSpan.textContent = groups[groupIndex].score;
             }
-            localStorage.setItem(`group-${groupIndex}`, groups[groupIndex].score);
             updateRanking();
             if (delta > 0) {
                 if (scoreSpan) {
@@ -1105,10 +1104,10 @@
             } else if (delta < 0) {
                 playSubtractSound();
             }
-            saveCurrentClassToData(); // 立即保存到当前班级（内存）
+            saveCurrentClassToData();
+            debounceSave();  // 触发云端同步
         }
-
-        // 点名
+        
         function startRoll() {
             if (rolling) return;
             initAudio();
@@ -1128,29 +1127,26 @@
             playStopSound();
         }
         function changeSpeed(speed) { rollSpeed = 210 - speed; }
-
         function addScoreToAllGroups(delta) { groups.forEach((_, i) => changeScore(i, delta)); }
-
-        // 重写保存分数：持久化所有班级数据（本次课分不保存）
+        
         function saveScores() {
-            // 确保当前班级数据已更新到 classesData
             saveCurrentClassToData();
-            saveAllData();
+            saveToCloud();
+            showToast('✅ 数据已保存到云端');
         }
-
-        // 重写恢复分数：从 localStorage 加载数据并刷新界面，本次课分置0
-        function restoreScores() {
-            if (loadAllData()) {
-                // 重新加载当前班级数据
+        
+        async function restoreScores() {
+            showToast('🌐 正在从云端恢复...');
+            const success = await loadFromCloud();
+            if (success) {
                 loadClass(currentClass);
-                // 更新班级选择器显示
                 updateClassSelector();
-                alert('已从本地恢复上次保存的数据');
+                showToast('✅ 已从云端恢复数据');
             } else {
-                alert('没有找到保存的数据');
+                alert('云端无数据或加载失败');
             }
         }
-
+        
         function clearAllScores() {
             groups.forEach((g, i) => {
                 g.score = 0;
@@ -1160,9 +1156,7 @@
                 g.yearly = 0;
                 const span = document.getElementById(`score-${i}`);
                 if (span) span.textContent = 0;
-                localStorage.setItem(`group-${i}`, 0);
             });
-            // 个人分也清零
             individualScores.forEach(s => {
                 s.score = 0;
                 s.weekly = 0;
@@ -1172,11 +1166,10 @@
             });
             updateRanking();
             saveCurrentClassToData();
+            debounceSave();
         }
-
-        // 个人分数相关
+        
         function renderStars(score) {
-            // 确保 score 是数字，避免传入 undefined/null 导致 NaN
             score = Number(score) || 0;
             let starCount = Math.min(score, 3);
             let stars = '';
@@ -1185,17 +1178,13 @@
             }
             return stars;
         }
-
+        
         function editStudentScore(studentName) {
             const index = individualScores.findIndex(s => s.name === studentName);
-            if (index === -1) {
-                alert('学生不存在');
-                return;
-            }
+            if (index === -1) { alert('学生不存在'); return; }
             const student = individualScores[index];
             const modal = document.getElementById('scoreRecordModal');
             const content = document.getElementById('scoreRecordContent');
-            // 使用卡通关闭按钮
             let html = '<button class="close-btn" onclick="closeScoreRecordModal()"><i class="fa fa-times"></i>关闭</button>';
             html += '<h2 class="modal-title">🌟 ' + student.name + ' 的星星罐子 🌟</h2>';
             html += `<div style="display:flex; flex-direction:column; align-items:center; gap:20px;">`;
@@ -1204,25 +1193,21 @@
             html += `<div class="jar-score" id="singleJarScore">${student.score}</div>`;
             html += `</div>`;
             html += `<div style="display:flex; gap:20px;">`;
-            // 加减按钮应用卡通样式：减一颗黄色，加一颗绿色
             html += `<button class="candy-btn minus" onclick="changeSingleStudentScore('${studentName}', -1)"><i class="fa fa-minus"></i> 减一颗</button>`;
             html += `<button class="candy-btn plus" onclick="changeSingleStudentScore('${studentName}', 1)"><i class="fa fa-plus"></i> 加一颗</button>`;
-            html += `</div>`;
-            html += `</div>`;
+            html += `</div></div>`;
             content.innerHTML = html;
             modal.style.display = 'flex';
         }
-
+        
         function changeSingleStudentScore(name, delta) {
             const index = individualScores.findIndex(s => s.name === name);
             if (index === -1) return;
-            // 使用安全加法，避免 NaN
             individualScores[index].score = Math.max(0, (Number(individualScores[index].score) || 0) + delta);
             individualScores[index].weekly = Math.max(0, (Number(individualScores[index].weekly) || 0) + delta);
             individualScores[index].monthly = Math.max(0, (Number(individualScores[index].monthly) || 0) + delta);
             individualScores[index].semester = Math.max(0, (Number(individualScores[index].semester) || 0) + delta);
             individualScores[index].yearly = Math.max(0, (Number(individualScores[index].yearly) || 0) + delta);
-
             const starsDiv = document.getElementById('singleJarStars');
             const scoreDiv = document.getElementById('singleJarScore');
             if (starsDiv && scoreDiv) {
@@ -1231,16 +1216,15 @@
             }
             if (delta > 0) playAddSound(); else if (delta < 0) playSubtractSound();
             saveCurrentClassToData();
+            debounceSave();
         }
-
+        
         function editPersonalScores() {
             const modal = document.getElementById('scoreRecordModal');
             const content = document.getElementById('scoreRecordContent');
-            // 使用卡通关闭按钮
             let html = '<button class="close-btn" onclick="closeScoreRecordModal()"><i class="fa fa-times"></i>关闭</button>';
             html += '<h2 class="modal-title">🌟 个人星星 🌟</h2>';
             html += '<div style="grid-column:1/-1; max-height:70vh; overflow-y:auto;">';
-
             individualScores.forEach((s, idx) => {
                 html += `
                     <div class="student-jar-item" id="jar-edit-${idx}">
@@ -1260,16 +1244,14 @@
             content.innerHTML = html;
             modal.style.display = 'flex';
         }
-
+        
         function changePersonalScore(idx, delta) {
             if (idx < 0 || idx >= individualScores.length) return;
-            // 使用安全加法，避免 NaN
             individualScores[idx].score = Math.max(0, (Number(individualScores[idx].score) || 0) + delta);
             individualScores[idx].weekly = Math.max(0, (Number(individualScores[idx].weekly) || 0) + delta);
             individualScores[idx].monthly = Math.max(0, (Number(individualScores[idx].monthly) || 0) + delta);
             individualScores[idx].semester = Math.max(0, (Number(individualScores[idx].semester) || 0) + delta);
             individualScores[idx].yearly = Math.max(0, (Number(individualScores[idx].yearly) || 0) + delta);
-
             const starsContainer = document.getElementById(`stars-${idx}`);
             const scoreSpan = document.getElementById(`jar-score-${idx}`);
             if (starsContainer && scoreSpan) {
@@ -1278,14 +1260,12 @@
             }
             if (delta > 0) playAddSound(); else if (delta < 0) playSubtractSound();
             saveCurrentClassToData();
+            debounceSave();
         }
-
-        // 查看个人排行榜（按周期显示，无加减按钮，带周期下拉）
+        
         function viewRankingScores(period = 'current') {
             const modal = document.getElementById('scoreRecordModal');
             const content = document.getElementById('scoreRecordContent');
-            
-            // 头部：关闭按钮和周期下拉同行
             let html = '<div class="personal-header">';
             html += '<button class="close-btn" onclick="closeScoreRecordModal()"><i class="fa fa-times"></i>关闭</button>';
             html += '<select id="personalPeriodSelect" onchange="viewRankingScores(this.value)">';
@@ -1299,28 +1279,17 @@
             periods.forEach(p => {
                 html += `<option value="${p.value}" ${period === p.value ? 'selected' : ''}>${p.label}</option>`;
             });
-            html += '</select>';
-            html += '</div>';
-
+            html += '</select></div>';
             let periodName = '本次课';
             let key = 'score';
             if (period === 'weekly') { periodName = '周度'; key = 'weekly'; }
             else if (period === 'monthly') { periodName = '月度'; key = 'monthly'; }
             else if (period === 'semester') { periodName = '学期'; key = 'semester'; }
             else if (period === 'yearly') { periodName = '年度'; key = 'yearly'; }
-            
             html += `<h2 class="modal-title">🏅 个人${periodName}星星排行榜 🏅</h2>`;
             html += '<div style="grid-column:1/-1; max-height:70vh; overflow-y:auto;">';
-
-            // 排序：使用数字比较，避免 NaN 影响
-            const sorted = [...individualScores].sort((a, b) => {
-                const scoreA = Number(a[key]) || 0;
-                const scoreB = Number(b[key]) || 0;
-                return scoreB - scoreA;
-            });
-
+            const sorted = [...individualScores].sort((a, b) => (Number(b[key]) || 0) - (Number(a[key]) || 0));
             sorted.forEach((s, rank) => {
-                // 确保分数为数字，避免显示 undefined/null
                 const score = Number(s[key]) || 0;
                 html += `
                     <div class="student-jar-item">
@@ -1329,7 +1298,6 @@
                             <div class="stars-container">${renderStars(score)}</div>
                             <div class="jar-score">${score}</div>
                         </div>
-                        <!-- 加减按钮已移除 -->
                     </div>
                 `;
             });
@@ -1337,19 +1305,12 @@
             content.innerHTML = html;
             modal.style.display = 'flex';
         }
-
-        // 原 changeRankingScore 不再使用，但保留以防其他调用
-        function changeRankingScore(name, delta) {
-            // 此函数已弃用（无按钮调用）
-        }
-
+        
         function closeScoreRecordModal() {
             document.getElementById('scoreRecordModal').style.display = 'none';
-            // 如果有抽奖停止，保留原逻辑
             if (typeof stopLottery === 'function') stopLottery();
         }
-
-        // 上传Excel
+        
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1376,7 +1337,7 @@
             }
             document.getElementById('fileInput').value = '';
         }
-
+        
         function applyNewList(list) {
             if (list.length === 0) { alert('无有效姓名'); return; }
             students = list;
@@ -1385,57 +1346,45 @@
             renderGroups();
             lastRolledIndex = 0;
             document.getElementById('rollName').textContent = 'Ready';
-            saveCurrentClassToData(); // 保存到当前班级
+            saveCurrentClassToData();
+            debounceSave();
             alert(`已加载 ${students.length} 位宇航员~`);
         }
-
-        // 班级管理
-        function updateClassSelector() {
-            const selector = document.getElementById('classSelector');
-            selector.innerHTML = '';
-            classesList.forEach(cls => {
-                const option = document.createElement('option');
-                option.value = cls.id;
-                option.textContent = cls.name;
-                selector.appendChild(option);
-            });
-            selector.value = currentClass;
+        
+        function switchClass(classId) {
+            if (classId === currentClass) return;
+            saveCurrentClassToData();
+            currentClass = classId;
+            loadClass(classId);
+            document.getElementById('classSelector').value = currentClass;
         }
-
+        
         function addNewClass() {
             let newName = prompt('请输入新班级名称', '新班级');
             if (!newName) return;
             const newId = 'class_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
             classesList.push({ id: newId, name: newName });
-            // 新班级初始数据为空
-            classesData[newId] = {
-                students: [],
-                groups: [],
-                individualScores: []
-            };
+            classesData[newId] = { students: [], groups: [], individualScores: [] };
             updateClassSelector();
-            // 切换到新班级
-            saveCurrentClassToData(); // 保存当前班级（以防万一）
+            saveCurrentClassToData();
             currentClass = newId;
             updateClassSelector();
             loadClass(newId);
+            debounceSave();
         }
-
+        
         function deleteCurrentClass() {
-            if (classesList.length <= 1) {
-                alert('至少保留一个班级');
-                return;
-            }
+            if (classesList.length <= 1) { alert('至少保留一个班级'); return; }
             if (!confirm(`确定要删除班级 "${classesList.find(c => c.id === currentClass).name}" 吗？`)) return;
             const index = classesList.findIndex(c => c.id === currentClass);
             classesList.splice(index, 1);
             delete classesData[currentClass];
-            // 切换到第一个班级
             currentClass = classesList[0].id;
             updateClassSelector();
             loadClass(currentClass);
+            debounceSave();
         }
-
+        
         function renameCurrentClass() {
             const selector = document.getElementById('classSelector');
             const currentId = selector.value;
@@ -1445,15 +1394,15 @@
             if (newName && newName.trim() !== '') {
                 cls.name = newName.trim();
                 updateClassSelector();
+                debounceSave();
             }
         }
-
+        
         function changePeriod(period) {
             currentPeriod = period;
             updateRanking();
         }
-
-        // 编辑分组
+        
         function openGroupEditModal() {
             document.getElementById('groupEditModal').style.display = 'flex';
             document.getElementById('studentListRef').innerText = students.join(' · ');
@@ -1500,16 +1449,15 @@
             const missing = students.filter(s => !allNames.includes(s));
             if (missing.length) { alert(`未分配: ${missing.join(', ')}`); return; }
             groups = newGroups;
-            // 重置所有分数为0（因为分组变了，积分清零）
             groups.forEach(g => { g.score = 0; g.weekly = 0; g.monthly = 0; g.semester = 0; g.yearly = 0; });
             individualScores = rebuildIndividualScoresFromGroups(groups);
             renderGroups();
             closeGroupEditModal();
             saveCurrentClassToData();
+            debounceSave();
         }
         function closeGroupEditModal() { document.getElementById('groupEditModal').style.display = 'none'; }
-
-        // 生成星星
+        
         function createStars() {
             for (let i = 0; i < 150; i++) {
                 const s = document.createElement('div');
@@ -1523,18 +1471,15 @@
                 document.getElementById('space-effects').appendChild(s);
             }
         }
-
-        // 悬浮球
+        
         function initFloatingBall() {
             const ball = document.getElementById('floatingBall');
             let offsetX, offsetY, isDragging = false;
-
             ball.addEventListener('mousedown', (e) => {
                 isDragging = false;
                 offsetX = e.clientX - ball.getBoundingClientRect().left;
                 offsetY = e.clientY - ball.getBoundingClientRect().top;
                 ball.style.cursor = 'grabbing';
-
                 const onMouseMove = (e) => {
                     isDragging = true;
                     const left = e.clientX - offsetX;
@@ -1544,22 +1489,18 @@
                     ball.style.bottom = 'auto';
                     ball.style.top = top + 'px';
                 };
-
                 const onMouseUp = () => {
                     ball.style.cursor = 'grab';
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
-                    if (!isDragging) {
-                        toggleMainUI();
-                    }
+                    if (!isDragging) { toggleMainUI(); }
                 };
-
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('mouseup', onMouseUp);
                 e.preventDefault();
             });
         }
-
+        
         function toggleMainUI() {
             const leftToolbar = document.getElementById('left-toolbar');
             const mainContent = document.getElementById('main-content');
@@ -1575,13 +1516,62 @@
                 ranking.style.display = 'none';
             }
         }
-
-        // 初始化系统
-        function initialize() {
-            // 尝试从本地存储加载数据
-            if (!loadAllData()) {
-                // 无存储数据，使用默认初始化
-                // 初始化班级1（班级A）
+        
+        function exportGroupScores() {
+            if (!groups || groups.length === 0) { alert('没有小组数据可导出'); return; }
+            const className = classesList.find(c => c.id === currentClass)?.name || '未知班级';
+            const data = [['组名', '本次课', '周度', '月度', '学期', '年度']];
+            groups.forEach((group, index) => {
+                data.push([`组${index + 1}`, Number(group.score) || 0, Number(group.weekly) || 0, Number(group.monthly) || 0, Number(group.semester) || 0, Number(group.yearly) || 0]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = data[0].map(() => ({ wch: 15 }));
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; R++) {
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cell = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell]) continue;
+                    if (!ws[cell].s) ws[cell].s = {};
+                    ws[cell].s.alignment = { horizontal: 'center', vertical: 'center' };
+                }
+            }
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '小组分');
+            const fileName = `${className}_小组分_全部周期_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        function exportPersonalScores() {
+            if (!individualScores || individualScores.length === 0) { alert('没有个人数据可导出'); return; }
+            const className = classesList.find(c => c.id === currentClass)?.name || '未知班级';
+            const data = [['姓名', '组号', '本次课', '周度', '月度', '学期', '年度']];
+            individualScores.forEach(s => {
+                data.push([s.name, `组${s.group}`, Number(s.score) || 0, Number(s.weekly) || 0, Number(s.monthly) || 0, Number(s.semester) || 0, Number(s.yearly) || 0]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = data[0].map(() => ({ wch: 15 }));
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; R++) {
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cell = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell]) continue;
+                    if (!ws[cell].s) ws[cell].s = {};
+                    ws[cell].s.alignment = { horizontal: 'center', vertical: 'center' };
+                }
+            }
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '个人分');
+            const fileName = `${className}_个人分_全部周期_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        // 初始化系统（带云端加载）
+        async function initialize() {
+            // 先尝试从云端加载
+            const hasCloudData = await loadFromCloud();
+            
+            if (!hasCloudData || Object.keys(classesData).length === 0) {
+                console.log('云端无数据，使用本地默认配置');
                 const groups1 = initGroupsFromStudents(studentsClass1);
                 const indScores1 = rebuildIndividualScoresFromGroups(groups1);
                 classesData.class1 = {
@@ -1589,149 +1579,67 @@
                     groups: groups1.map(g => ({ ...g, members: [...g.members] })),
                     individualScores: indScores1.map(s => ({ ...s }))
                 };
-
-                // 初始化班级2（班级B）为完全空状态，需上传名单
-                classesData.class2 = {
-                    students: [],
-                    groups: [],
-                    individualScores: []
-                };
-
-                // 加载默认班级（班级A）
+                classesData.class2 = { students: [], groups: [], individualScores: [] };
                 currentClass = 'class1';
                 students = [...studentsClass1];
                 groups = classesData.class1.groups.map(g => ({ ...g, members: [...g.members], score: 0 }));
                 individualScores = classesData.class1.individualScores.map(s => ({ ...s, score: 0 }));
             } else {
-                // 已从存储加载，确保当前班级变量同步，并将本次课分置0
                 if (classesList.length > 0) {
                     currentClass = classesList[0].id;
                 } else {
-                    // 极端情况：无班级，重新创建默认
                     classesList = [{ id: 'class1', name: '班级A' }];
                     currentClass = 'class1';
                 }
-                // 加载该班级数据（loadClass 内部会置0本次课分）
                 loadClass(currentClass);
             }
-
+            
             updateClassSelector();
             renderGroups();
             createStars();
             initFloatingBall();
             document.getElementById('periodSelector').value = 'current';
+            showToast('🌐 已连接云端，数据实时同步');
         }
-
-        // -------------------- 导出功能（Excel格式，居中，带班级名） --------------------
-        // 导出小组分数为 Excel（包含所有周期列）
-        function exportGroupScores() {
-            if (!groups || groups.length === 0) {
-                alert('没有小组数据可导出');
-                return;
-            }
-            const className = classesList.find(c => c.id === currentClass)?.name || '未知班级';
-            // 准备数据
-            const data = [
-                ['组名', '本次课', '周度', '月度', '学期', '年度']
-            ];
-            groups.forEach((group, index) => {
-                data.push([
-                    `组${index + 1}`,
-                    Number(group.score) || 0,
-                    Number(group.weekly) || 0,
-                    Number(group.monthly) || 0,
-                    Number(group.semester) || 0,
-                    Number(group.yearly) || 0
-                ]);
-            });
-            // 创建工作表
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            // 设置列宽
-            ws['!cols'] = data[0].map(() => ({ wch: 15 }));
-            // 设置所有单元格居中
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let R = range.s.r; R <= range.e.r; R++) {
-                for (let C = range.s.c; C <= range.e.c; C++) {
-                    const cell = XLSX.utils.encode_cell({ r: R, c: C });
-                    if (!ws[cell]) continue;
-                    if (!ws[cell].s) ws[cell].s = {};
-                    ws[cell].s.alignment = { horizontal: 'center', vertical: 'center' };
-                }
-            }
-            // 创建工作簿并导出
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, '小组分');
-            const fileName = `${className}_小组分_全部周期_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-        }
-
-        // 导出个人分数为 Excel（包含所有周期列）
-        function exportPersonalScores() {
-            if (!individualScores || individualScores.length === 0) {
-                alert('没有个人数据可导出');
-                return;
-            }
-            const className = classesList.find(c => c.id === currentClass)?.name || '未知班级';
-            // 准备数据
-            const data = [
-                ['姓名', '组号', '本次课', '周度', '月度', '学期', '年度']
-            ];
-            individualScores.forEach(s => {
-                data.push([
-                    s.name,
-                    `组${s.group}`,
-                    Number(s.score) || 0,
-                    Number(s.weekly) || 0,
-                    Number(s.monthly) || 0,
-                    Number(s.semester) || 0,
-                    Number(s.yearly) || 0
-                ]);
-            });
-            // 创建工作表
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            // 设置列宽
-            ws['!cols'] = data[0].map(() => ({ wch: 15 }));
-            // 设置所有单元格居中
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let R = range.s.r; R <= range.e.r; R++) {
-                for (let C = range.s.c; C <= range.e.c; C++) {
-                    const cell = XLSX.utils.encode_cell({ r: R, c: C });
-                    if (!ws[cell]) continue;
-                    if (!ws[cell].s) ws[cell].s = {};
-                    ws[cell].s.alignment = { horizontal: 'center', vertical: 'center' };
-                }
-            }
-            // 创建工作簿并导出
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, '个人分');
-            const fileName = `${className}_个人分_全部周期_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-        }
-
+        
         initialize();
-
+        
         // 全局函数暴露
-        window.changeScore = changeScore; window.startRoll = startRoll; window.stopRoll = stopRoll; window.changeSpeed = changeSpeed;
-        window.addScoreToAllGroups = addScoreToAllGroups; window.saveScores = saveScores; window.restoreScores = restoreScores;
+        window.changeScore = changeScore;
+        window.startRoll = startRoll;
+        window.stopRoll = stopRoll;
+        window.changeSpeed = changeSpeed;
+        window.addScoreToAllGroups = addScoreToAllGroups;
+        window.saveScores = saveScores;
+        window.restoreScores = restoreScores;
         window.clearAllScores = clearAllScores;
         window.editPersonalScores = editPersonalScores;
         window.viewRankingScores = viewRankingScores;
         window.changePersonalScore = changePersonalScore;
         window.editStudentScore = editStudentScore;
         window.changeSingleStudentScore = changeSingleStudentScore;
-        window.changeRankingScore = changeRankingScore;
+        window.changeRankingScore = function() {};
         window.closeScoreRecordModal = closeScoreRecordModal;
-        window.handleFileUpload = handleFileUpload; window.openGroupEditModal = openGroupEditModal;
-        window.addGroupInput = addGroupInput; window.removeGroupInput = removeGroupInput; window.resetToAverageGroups = resetToAverageGroups;
-        window.applyGroupEdit = applyGroupEdit; window.closeGroupEditModal = closeGroupEditModal;
-        window.switchClass = switchClass;  // 确保全局可用
+        window.handleFileUpload = handleFileUpload;
+        window.openGroupEditModal = openGroupEditModal;
+        window.addGroupInput = addGroupInput;
+        window.removeGroupInput = removeGroupInput;
+        window.resetToAverageGroups = resetToAverageGroups;
+        window.applyGroupEdit = applyGroupEdit;
+        window.closeGroupEditModal = closeGroupEditModal;
+        window.switchClass = switchClass;
         window.addNewClass = addNewClass;
         window.deleteCurrentClass = deleteCurrentClass;
         window.renameCurrentClass = renameCurrentClass;
         window.changePeriod = changePeriod;
-        window.startLottery = function() {}; window.stopLottery = function() {}; window.changeLotterySpeed = function() {};
+        window.startLottery = function() {};
+        window.stopLottery = function() {};
+        window.changeLotterySpeed = function() {};
         window.exportGroupScores = exportGroupScores;
         window.exportPersonalScores = exportPersonalScores;
+        window.saveToCloud = saveToCloud;
+        window.loadFromCloud = loadFromCloud;
+        window.debounceSave = debounceSave;
     </script>
 </body>
 </html>
