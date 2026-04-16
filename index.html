@@ -1619,6 +1619,7 @@
             document.getElementById('periodSelector').value = 'current';
             showToast('🌐 已连接云端，数据实时同步');
         }
+        
                 
         // 全局函数暴露
         window.changeScore = changeScore;
@@ -1656,6 +1657,14 @@
         window.saveToCloud = saveToCloud;
         window.loadFromCloud = loadFromCloud;
         window.debounceSave = debounceSave;
+        
+        // ==================== 启动应用 ====================
+        // 等待 DOM 加载完成后初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
     </script>
 </body>
 </html>
