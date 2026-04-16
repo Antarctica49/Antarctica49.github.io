@@ -759,7 +759,7 @@
     <script>
         // ==================== 🌐 云端同步配置 ====================
         // !!! 重要：请替换成你的 Google Apps Script Web App 网址 !!!
-        const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbwPVSWYX5qMZ8Gkmf3dPq8YpxMO1ri8icy62ODNNjU1a8scfZxJd7iChFHor7lV4KRK/exec';
+        const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbxs13JWfIlD9B-YPK2bNLROsBIUVDYChuBiYi_LnTu_OlmtiuycHItLSkYlo79LcI4n/exec';
         
         let isSyncing = false;
         let pendingSave = false;
@@ -786,14 +786,26 @@
         async function loadFromCloud() {
             try {
                 showToast('🌐 正在从云端加载数据...');
-                const response = await fetch(`${CLOUD_API_URL}?action=getAllData`);
+                
+                // 添加时间戳防止缓存
+                const timestamp = new Date().getTime();
+                const response = await fetch(`${CLOUD_API_URL}?action=getAllData&t=${timestamp}`);
                 const result = await response.json();
                 
+                console.log('云端返回数据:', result); // 添加调试日志
+                
                 if (result.success && result.classesList && result.classesData) {
-                    window.classesList = result.classesList;
-                    window.classesData = result.classesData;
-                    showToast('✅ 云端数据加载成功');
-                    return true;
+                    // 检查数据是否为空
+                    if (result.classesList.length > 0 && Object.keys(result.classesData).length > 0) {
+                        window.classesList = result.classesList;
+                        window.classesData = result.classesData;
+                        showToast('✅ 云端数据加载成功');
+                        console.log('加载的班级数据:', window.classesData); // 调试日志
+                        return true;
+                    } else {
+                        console.log('云端数据为空');
+                        return false;
+                    }
                 }
                 return false;
             } catch (e) {
@@ -1570,8 +1582,9 @@
             // 先尝试从云端加载
             const hasCloudData = await loadFromCloud();
             
-            if (!hasCloudData || Object.keys(classesData).length === 0) {
+            if (!hasCloudData) {
                 console.log('云端无数据，使用本地默认配置');
+                // 使用默认数据
                 const groups1 = initGroupsFromStudents(studentsClass1);
                 const indScores1 = rebuildIndividualScoresFromGroups(groups1);
                 classesData.class1 = {
@@ -1584,7 +1597,12 @@
                 students = [...studentsClass1];
                 groups = classesData.class1.groups.map(g => ({ ...g, members: [...g.members], score: 0 }));
                 individualScores = classesData.class1.individualScores.map(s => ({ ...s, score: 0 }));
+                
+                // 保存默认数据到云端
+                setTimeout(() => saveToCloud(), 500);
             } else {
+                // 成功加载云端数据
+                console.log('成功加载云端数据');
                 if (classesList.length > 0) {
                     currentClass = classesList[0].id;
                 } else {
@@ -1601,9 +1619,7 @@
             document.getElementById('periodSelector').value = 'current';
             showToast('🌐 已连接云端，数据实时同步');
         }
-        
-        initialize();
-        
+                
         // 全局函数暴露
         window.changeScore = changeScore;
         window.startRoll = startRoll;
