@@ -782,25 +782,29 @@
             }, 2500);
         }
         
-        // 从云端加载所有数据
+                // 从云端加载所有数据
         async function loadFromCloud() {
             try {
                 showToast('🌐 正在从云端加载数据...');
                 
-                // 添加时间戳防止缓存
                 const timestamp = new Date().getTime();
                 const response = await fetch(`${CLOUD_API_URL}?action=getAllData&t=${timestamp}`);
                 const result = await response.json();
                 
-                console.log('云端返回数据:', result); // 添加调试日志
+                console.log('云端返回数据:', result);
                 
                 if (result.success && result.classesList && result.classesData) {
-                    // 检查数据是否为空
                     if (result.classesList.length > 0 && Object.keys(result.classesData).length > 0) {
+                        // ⚠️ 关键：保存到全局变量
                         window.classesList = result.classesList;
                         window.classesData = result.classesData;
+                        
+                        // 同步到局部变量
+                        classesList = result.classesList;
+                        classesData = result.classesData;
+                        
                         showToast('✅ 云端数据加载成功');
-                        console.log('加载的班级数据:', window.classesData); // 调试日志
+                        console.log('加载的班级数据:', window.classesData);
                         return true;
                     } else {
                         console.log('云端数据为空');
@@ -1577,22 +1581,36 @@
             XLSX.writeFile(wb, fileName);
         }
         
-        // 初始化系统（带云端加载）
+                // 初始化系统（带云端加载）
         async function initialize() {
+            console.log('🚀 开始初始化...');
+            
             // 先尝试从云端加载
             const hasCloudData = await loadFromCloud();
             
             if (!hasCloudData) {
-                console.log('云端无数据，使用本地默认配置');
+                console.log('📦 云端无数据，使用本地默认配置');
                 // 使用默认数据
                 const groups1 = initGroupsFromStudents(studentsClass1);
                 const indScores1 = rebuildIndividualScoresFromGroups(groups1);
-                classesData.class1 = {
-                    students: [...studentsClass1],
-                    groups: groups1.map(g => ({ ...g, members: [...g.members] })),
-                    individualScores: indScores1.map(s => ({ ...s }))
+                
+                // 重置全局变量
+                window.classesList = [
+                    { id: 'class1', name: '班级A' },
+                    { id: 'class2', name: '班级B' }
+                ];
+                window.classesData = {
+                    class1: {
+                        students: [...studentsClass1],
+                        groups: groups1.map(g => ({ ...g, members: [...g.members] })),
+                        individualScores: indScores1.map(s => ({ ...s }))
+                    },
+                    class2: { students: [], groups: [], individualScores: [] }
                 };
-                classesData.class2 = { students: [], groups: [], individualScores: [] };
+                
+                // 同步到局部变量
+                classesList = window.classesList;
+                classesData = window.classesData;
                 currentClass = 'class1';
                 students = [...studentsClass1];
                 groups = classesData.class1.groups.map(g => ({ ...g, members: [...g.members], score: 0 }));
@@ -1601,23 +1619,33 @@
                 // 保存默认数据到云端
                 setTimeout(() => saveToCloud(), 500);
             } else {
-                // 成功加载云端数据
-                console.log('成功加载云端数据');
+                console.log('✅ 成功加载云端数据');
+                
+                // ⚠️ 关键修复：同步全局变量到局部变量
+                classesList = window.classesList;
+                classesData = window.classesData;
+                
+                // 确保有班级
                 if (classesList.length > 0) {
                     currentClass = classesList[0].id;
                 } else {
                     classesList = [{ id: 'class1', name: '班级A' }];
                     currentClass = 'class1';
                 }
+                
+                // 加载当前班级数据
                 loadClass(currentClass);
             }
             
+            // 更新界面
             updateClassSelector();
             renderGroups();
             createStars();
             initFloatingBall();
             document.getElementById('periodSelector').value = 'current';
             showToast('🌐 已连接云端，数据实时同步');
+            
+            console.log('✨ 初始化完成');
         }
         
                 
